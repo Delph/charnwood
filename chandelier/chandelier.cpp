@@ -48,24 +48,8 @@ void setup()
   FastLED.setBrightness(255);
 }
 
-
-struct Chaser
-{
-  size_t pos;
-  size_t dir;
-  CRGB colour;
-};
-
-Chaser chasers[8] = {
-  {0,  1, CRGB::Red}, {10, -1, CRGB::Yellow},
-  {0, -1, CRGB::Orange}, {20,  1, CRGB::Green},
-  {0,  1, CRGB::Blue}, {15,  -1, CRGB::White},
-  {0, -1, CRGB::Purple}, { 5, 1, CRGB::Red}
-};
-
-
 uint32_t last = 0;
-const uint32_t FPS = 40;
+const uint32_t FPS = 100;
 void loop()
 {
   uint32_t now = millis();
@@ -76,21 +60,7 @@ void loop()
   {
     Ring& ring = rings[r];
     for (size_t i = 0; i < ring.length; ++i)
-      ring.leds[i].fadeToBlackBy(32);
-
-    Chaser& chaser1 = chasers[r*2];
-    Chaser& chaser2 = chasers[r*2+1];
-    if (ring.leds[chaser1.pos].getAverageLight() < 16)
-      ring.leds[chaser1.pos] = chaser1.colour;
-    else
-      ring.leds[chaser1.pos] = ring.leds[chaser1.pos].lerp8(chaser1.colour, 128);
-    if (ring.leds[chaser2.pos].getAverageLight() < 16)
-      ring.leds[chaser2.pos] = chaser2.colour;
-    else
-      ring.leds[chaser2.pos] = ring.leds[chaser2.pos].lerp8(chaser2.colour, 128);
-
-    chaser1.pos = (chaser1.pos + chaser1.dir + ring.length) % ring.length;
-    chaser2.pos = (chaser2.pos + chaser2.dir + ring.length) % ring.length;
+      ring.leds[i] = CHSV(inoise8(static_cast<uint16_t>(ring.perc(i) * 255) << 3, (r*255), now / 8), 255, 255);
   }
 
   FastLED.show();
