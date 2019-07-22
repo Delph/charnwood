@@ -48,19 +48,58 @@ void setup()
   FastLED.setBrightness(255);
 }
 
+class Drop
+{
+public:
+  Drop() : colour(255, 255, 255), ring(4) {}
+  CHSV colour;
+  size_t ring;
+  size_t led;
+  uint32_t last;
+  uint32_t speed;
+  uint8_t fade;
+};
+
+Drop drops[30];
+
 uint32_t last = 0;
-const uint32_t FPS = 100;
+const uint32_t FPS = 1;
 void loop()
 {
   uint32_t now = millis();
   while (now < last + 1000 / FPS)
     now = millis();
 
-  for (size_t r = 0; r < 4; ++r)
+  for (size_t i = 0; i < 30; ++i)
   {
-    Ring& ring = rings[r];
-    for (size_t i = 0; i < ring.length; ++i)
-      ring.leds[i] = CHSV(inoise8(static_cast<uint16_t>(ring.perc(i) * 255) << 3, (r*255), now / 8), 255, 255);
+    Drop& drop = drops[i];
+    if (drop.ring == 4)
+    {
+      drop.colour = 0xFFFFFF;
+      drop.ring = 0;
+      drop.led = random(rings[0].length);
+      drop.last = now;
+      drop.speed = 500;
+      drop.fade = 8;
+    }
+    else
+    {
+      drop.colour.v -= drop.fade;
+    }
+
+    // move down
+    if (drop.last + drop.speed > drop.now)
+    {
+      Ring& current = rings[drop.ring++];  
+      // nothing more to do
+      if (drop.ring >= 4)
+        continue;
+      Ring& target = rings[drop.ring];
+      drop.led = static_cast<size_t>(current.perc(drop.led) * current.length + 0.5f);
+      drop.last = now;
+    }
+
+    rings[drop.ring].leds[drop.led] = drop.colour;
   }
 
   FastLED.show();
