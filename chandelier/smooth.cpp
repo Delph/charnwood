@@ -1,6 +1,6 @@
-#if 0
+#include "chandelier.h"
 
-void update
+void smooth(const uint32_t now)
 {
   for (size_t r = 0; r < 4; ++r)
   {
@@ -9,5 +9,3 @@ void update
       ring.leds[i] = CHSV(0, 0, inoise8(static_cast<uint16_t>(ring.perc(i) * 255) << 1, r << 9, now / 8));
   }
 }
-
-#endif

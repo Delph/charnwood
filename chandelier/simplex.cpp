@@ -1,6 +1,6 @@
-#if 0
+#include "chandelier.h"
 
-void update()
+void simplex(const uint32_t now)
 {
   for (size_t r = 0; r < 4; ++r)
   {
@@ -9,4 +9,3 @@ void update()
       ring.leds[i] = CHSV(inoise8(static_cast<uint16_t>(ring.perc(i) * 255) << 3, (r*255), now / 8), 255, 255);
   }
 }
-#endif
