@@ -1,21 +1,6 @@
+#include "chandelier.h"
+
 #include <Arduino.h>
-
-#include <FastLED.h>
-
-class Ring
-{
-public:
-  Ring(const size_t n, CRGB* const l) : length(n), leds(l) {}
-  const size_t length;
-  CRGB* const leds;
-
-public:
-  inline float perc(const size_t i) const
-  {
-    return static_cast<float>(i) / static_cast<float>(length);
-  }
-};
-
 
 const size_t NUM_RING0_LEDS = 48;
 const size_t NUM_RING1_LEDS = 37;
@@ -34,6 +19,8 @@ Ring rings[] = {
 // may also need adjusting for the tent
 const uint32_t CORRECTION = 0xFFFFFF;
 
+Mode mode;
+
 void setup()
 {
   size_t offset = 0;
@@ -46,21 +33,32 @@ void setup()
   FastLED.addLeds<WS2812, 5, GRB>(leds, offset, rings[3].length).setCorrection(CORRECTION);
 
   FastLED.setBrightness(255);
+
+  mode = Mode::WHITE;
 }
 
-class Drop
-{
-public:
-  Drop() : colour(255, 255, 255), ring(4) {}
-  CHSV colour;
-  size_t ring;
-  size_t led;
-  uint32_t last;
-  uint32_t speed;
-  uint8_t fade;
-};
 
-Drop drops[30];
+void update(const uint32_t now)
+{
+  switch (mode)
+  {
+    case Mode::CHASER:
+      chaser(now);
+    break;
+    case Mode::SIMPLEX:
+      simplex(now);
+    break;
+    case Mode::SMOOTH:
+      smooth(now);
+    break;
+    case Mode::SPIRAL:
+      spiral(now);
+    break;
+    case Mode::WHITE:
+      fill_solid(leds, NUM_LEDS, CRGB::White);
+    break;
+  }
+}
 
 uint32_t last = 0;
 const uint32_t FPS = 1;
@@ -70,37 +68,7 @@ void loop()
   while (now < last + 1000 / FPS)
     now = millis();
 
-  for (size_t i = 0; i < 30; ++i)
-  {
-    Drop& drop = drops[i];
-    if (drop.ring == 4)
-    {
-      drop.colour = 0xFFFFFF;
-      drop.ring = 0;
-      drop.led = random(rings[0].length);
-      drop.last = now;
-      drop.speed = 500;
-      drop.fade = 8;
-    }
-    else
-    {
-      drop.colour.v -= drop.fade;
-    }
-
-    // move down
-    if (drop.last + drop.speed > drop.now)
-    {
-      Ring& current = rings[drop.ring++];  
-      // nothing more to do
-      if (drop.ring >= 4)
-        continue;
-      Ring& target = rings[drop.ring];
-      drop.led = static_cast<size_t>(current.perc(drop.led) * current.length + 0.5f);
-      drop.last = now;
-    }
-
-    rings[drop.ring].leds[drop.led] = drop.colour;
-  }
+  update(now);
 
   FastLED.show();
 

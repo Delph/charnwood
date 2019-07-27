@@ -1,4 +1,5 @@
-#if 0
+#include "chandelier.h"
+
 CRGB colours[] = {
   0xff6961, // red
   0xff7333, // orange
@@ -10,7 +11,7 @@ CRGB colours[] = {
 size_t col = 0;
 size_t pos = 0;
 
-void update()
+void spiral(const uint32_t now)
 {
   leds[pos++] = colours[col];
   if (pos == NUM_LEDS)
@@ -19,4 +20,3 @@ void update()
     col = (col + 1) % 6;
   }
 }
-#endif
