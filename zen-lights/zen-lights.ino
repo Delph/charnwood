@@ -9,7 +9,6 @@ const uint8_t PIN_BLUE = 3;
 
 bool on = false;
 float brightness = 1.0f;
-uint32_t solid = 0xFFFFFF;
 enum class Mode
 {
   SOLID,
@@ -49,6 +48,7 @@ enum Button
   TEAL = 20,
   YELLOW = 28
 };
+uint32_t solid = Button::WHITE;
 
 void colour(const CRGB& rgb)
 {
@@ -141,8 +141,6 @@ void loop()
     break;
     case Button::ON:
       on = true;
-      solid = 0xFFFFFF;
-      colour(0xFFFFFF);
     break;
     case Button::BRIGHTNESS_INC:
       brightness = min(brightness + 0.25f, 1.0f);
@@ -189,6 +187,9 @@ void loop()
     {
       case Mode::SOLID:
         colour(mapColour(solid));
+      break;
+      case Mode::FLASH:
+        colour(ColorFromPalette(LavaColors_p, millis() / 50, 255, LINEARBLEND));
       break;
       case Mode::FADE:
       {
